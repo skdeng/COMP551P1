@@ -1,8 +1,7 @@
 import csv
-import numpy
+import numpy as np
 import unicodedata
 import string
-from collections import defaultdict
 
 def get_sec(time_str):
     h, m, s = time_str.split(':')
@@ -19,6 +18,7 @@ def cleanRaceName(s):
     puncList = [".",";",":","!","?","/","\\",",","#","@","$","&",")","(","\"","’","and","de","-"," ","'","‘","`","*"]
     for punc in puncList:
         s = s.replace(punc,'')
+    s = s.replace("rocknroll","")
     return s
 
 def cleanRaceTypes(s):
@@ -63,14 +63,13 @@ def levenshtein(s1, s2):
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
         previous_row = current_row
-
     return previous_row[-1]
 
 list = []
-raceNames = defaultdict(int)
-raceTypes = defaultdict(int)
-raceAges = defaultdict(int)
-transform = defaultdict(str)
+raceNames = []
+raceTypes = []
+raceAges = []
+transform = {}
 #['0', '2015-09-20', "Marathon Oasis Rock 'n' Roll de Montreal", 'Marathon', 14024, 'M50-54']
 with open('Project1_data.csv', 'rt') as csvfile:
     csvreader = csv.reader(csvfile)
@@ -83,39 +82,40 @@ with open('Project1_data.csv', 'rt') as csvfile:
                 row[i+1] = cleanRaceName(row[i+1])
                 row[i+2] = cleanRaceTypes(row[i+2])
                 row[i+4] = cleanRaceAges(row[i+4])
-                raceTypes[row[i+2]] += 1
-                raceAges[row[i+4]] += 1
                 if row[i+1] in transform:
                     row[i+1] = transform[row[i+1]]
                 else:
                     transform[row[i+1]] = row[i+1]
                     for name in raceNames:
-                        if((row[i+1] != name) & (levenshtein(row[i+1],name) <= (3))):
-#                           print(row[i+1]+" "+name)
+                        if levenshtein(row[i+1],name) <= (3):
                             transform[row[i+1]] = name                            
                             row[i+1] = name
                             break
-                raceNames[row[i+1]] += 1
+                if row[i+1] not in raceNames:
+                    raceNames.append(row[i+1])
+                if row[i+2] not in raceTypes:
+                    raceTypes.append(row[i+2])
+                if row[i+4] not in raceAges:
+                    raceAges.append(row[i+4])
         list.append(row)
 
-#for i in list:
-#    print(i)
+x = []
+y = []
 
-#print(sorted(raceNames))
-#print(transform)
-print(len(raceNames))
-#print(sorted(raceTypes))
-#print(len(raceTypes))
-#print(sorted(raceAges))
-#print(len(raceAges))
-
-'''
-encodedData = []
 for row in list:
     toAdd = []
+    in2015MtlMarathon = 0
     toAdd.append(row[0])
     races = [0] * len(raceNames)
-    for j in range(len(row))
-        if(j-1)%5 ==0:
-            races[j]
-''' 
+    for j in range(len(row)):
+        if(j-1)%5 == 0:
+            if (row[j][:4] == '2015') & (row[j+1] == 'marathonoasismontreal'):
+                in2015MtlMarathon = 1
+            else:
+                races[raceNames.index(row[j+1])] += 1
+    toAdd.extend(races)
+    x.append(toAdd)
+    y.append(in2015MtlMarathon)
+
+x = np.array(x, dtype=float)
+y = np.array(y, dtype=float)
