@@ -11,6 +11,6 @@ yset = [((yhelp[i] > [0] * 10) * 1).reshape(10,1) for i in xrange(len(yhelp))]
 
 for i in xrange(len(xset)):
 	m.step(xset[i], yset[i])
-	print m.error(xset[i], yset[i])
+	print(m.error(xset[i], yset[i]))
 
-print m.forward([[50,2,3], [-1,0,0], [-50,-50,0]])
+print(m.forward([[50,2,3], [-1,0,0], [-50,-50,0]]))
