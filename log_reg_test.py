@@ -7,7 +7,7 @@ m = log_reg.Model(3, 0.1)
 xset = [np.random.randint(-10,10, size=(10,3)) for i in xrange(50)]
 
 yhelp = [np.sum(xset[i], axis=1) for i in xrange (len(xset))]
-yset = [((yhelp[i] > [0] * 10) * 1).reshape(10,1) for i in xrange(len(yhelp))]
+yset = [((yhelp[i] > ([0] * 10)) * 1).reshape(10,1) for i in xrange(len(yhelp))]
 
 for i in xrange(len(xset)):
 	m.step(xset[i], yset[i])

@@ -16,10 +16,19 @@ class Model():
 	def error(self, x, y):
 		"""Not used in weight update, only for human consumption (and please do so moderately)"""
 		"""NOTE as forward(x) approaches 0 or 1, floating point approximationg + log may **** this up"""
-		return np.sum(y * np.log(self.forward(x)) + (1-y)*np.log(1-self.forward(x)))
+		return np.sum(y * np.log(np.maximum(self.forward(x),[0.000001])) + (1-y)*np.log(np.maximum(1-self.forward(x), [0.0000001])))
 
 	def gradient(self, x, y):
 		return x * (y - self.forward(x))
 
-	def step(self, x, y):
-		self.w += self.learning_rate * np.sum(self.gradient(x,y), axis=0).reshape(3,1)
+	def step(self, x, y, e=float("inf")):
+		"""By default, this function performs one update step
+			error epsilon can be changed to perform multi updates at once"""
+		while error(x,y) > e:
+			self.w += self.learning_rate * np.sum(self.gradient(x,y), axis=0).reshape(3,1)
+
+	def save(self, filename):
+		np.save(filename, self.w, allow_pickle=False)
+
+	def load(self, filename):
+		np.load(filename, self.w, allow_pickle=False)
