@@ -7,6 +7,7 @@ class Model(object):
 		self.w = np.random.normal(size=[input_dim,1])
 
 	def solve(self, x, y):
+		""" A little bit different from the equations on the slides because we are using row major matrices, i.e. each row is a data point"""
 		xtx = np.dot(x.T, x)
 		xty = np.dot(y, x)
 		self.w = np.dot(np.linalg.inv(xtx), xty.T)

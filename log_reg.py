@@ -8,7 +8,7 @@ class Model():
 
 	def forward(self, x):
 		"""Allow for batch processing, assume row-major"""
-		return self.sigmoid(np.dot(x, self.w))
+		return np.round(self.sigmoid(np.dot(x, self.w)))
 
 	def sigmoid(self, x):
 		return 1 / (1 + np.exp(-x))
@@ -17,16 +17,17 @@ class Model():
 		"""Not used in weight update, only for human consumption (and please do so moderately)"""
 		"""NOTE as forward(x) approaches 0 or 1, floating point approximationg + log may **** this up"""
 		# return np.sum(y * np.log(np.maximum(self.forward(x),[0.000001])) + (1-y)*np.log(np.maximum(1-self.forward(x), [0.0000001]))) / x.shape[1]
-		return np.sum(y * np.log(self.forward(x)) + (1-y)*np.log(1-self.forward(x))) / x.shape[1]
+		y = y.reshape(y.shape[0],1).T
+		return np.dot(y, np.log(self.forward(x) + 0.000001)) + np.dot((1-y), np.log(1-self.forward(x) + 0.000001)) / x.shape[0]
 
 	def gradient(self, x, y):
-		return x * (y - self.forward(x))
+		# print x.shape, (y-self.forward(x)).shape, self.w.shape
+		return np.dot((y - self.forward(x)), x)
 
 	def step(self, x, y, e=float("inf")):
 		"""By default, this function performs one update step
 			error epsilon can be changed to perform multi updates at once"""
-		while self.error(x,y) > e:
-			self.w += self.learning_rate * np.sum(self.gradient(x,y), axis=0).reshape(3,1)
+		self.w += self.learning_rate * np.sum(self.gradient(x,y), axis=0).T.reshape(self.input_dim, 1)
 
 	def save(self, filename):
 		np.save(filename, self.w, allow_pickle=False)
