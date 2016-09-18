@@ -1,16 +1,26 @@
 import log_reg
 import numpy as np
+from sklearn import datasets
+import matplotlib.pyplot as plt
 
-m = log_reg.Model(3, 0.1)
+mu_vec1 = np.array([0,0])
+cov_mat1 = np.array([[2,0],[0,2]])
+x1_samples = np.random.multivariate_normal(mu_vec1, cov_mat1, 100)
+mu_vec1 = mu_vec1.reshape(1,2).T # to 1-col vector
 
-# generate 50 batches of 10 data points each
-xset = [np.random.randint(-10,10, size=(10,3)) for i in range(50)]
+mu_vec2 = np.array([1,2])
+cov_mat2 = np.array([[1,0],[0,1]])
+x2_samples = np.random.multivariate_normal(mu_vec2, cov_mat2, 100)
+mu_vec2 = mu_vec2.reshape(1,2).T
 
-yhelp = [np.sum(xset[i], axis=1) for i in range (len(xset))]
-yset = [((yhelp[i] > ([0] * 10)) * 1).reshape(10,1) for i in range(len(yhelp))]
 
-for i in range(len(xset)):
-	m.step(xset[i], yset[i])
-	print(m.error(xset[i], yset[i]))
+fig = plt.figure()
 
-print(m.forward([[50,2,3], [-1,0,0], [-50,-50,0]]))
+
+plt.scatter(x1_samples[:,0],x1_samples[:,1], marker='+')
+plt.scatter(x2_samples[:,0],x2_samples[:,1], c= 'green', marker='o')
+
+X = np.concatenate((x1_samples,x2_samples), axis = 0)
+Y = np.array([0]*100 + [1]*100)
+
+plt.show()
