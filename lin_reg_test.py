@@ -7,8 +7,7 @@ noise = np.random.normal(size=[1,20])
 y = noise+x
 
 plt.scatter(x, y)
-
-x = np.concatenate([[np.ones(20)], [x]]).T
+x = x.reshape(20,1)
 m = lin_reg.Model(2)
 
 m.solve(x,y)
