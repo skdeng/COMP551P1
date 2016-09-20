@@ -1,9 +1,9 @@
 import numpy as np
 
 class Model(object):
-	def __init__(self, input_dim, learning_rate=0.1):
+	def __init__(self, input_dim):
 		self.input_dim = input_dim
-		self.w = np.random.normal(size=[input_dim,1])
+		self.w = np.random.normal(size=[input_dim+1,1])
 
 	def solve(self, x, y):
 		""" A little bit different from the equations on the slides because we are using row major matrices, i.e. each row is a data point"""

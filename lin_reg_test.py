@@ -8,7 +8,7 @@ y = noise+x
 
 plt.scatter(x, y)
 x = x.reshape(20,1)
-m = lin_reg.Model(2)
+m = lin_reg.Model(1)
 
 m.solve(x,y)
 plt.plot(x, m.forward(x))
