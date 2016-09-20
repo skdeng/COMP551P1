@@ -2,6 +2,10 @@ import csv
 import numpy as np
 import unicodedata
 import string
+import log_reg
+import lin_reg
+import random
+
 
 def get_sec(time_str):
     h, m, s = time_str.split(':')
@@ -65,13 +69,54 @@ def levenshtein(s1, s2):
         previous_row = current_row
     return previous_row[-1]
 
+def linearRegression(X, Y):
+    m = lin_reg.Model(2)
+    m.solve(X,Y)
+    return m.w
+
+def logisticRegression(X, Y, testX):
+    testX = np.array(testX, dtype=float)
+    model = log_reg.Model(6, 0.1)
+    for i in range(10):
+        model.step(X,Y)
+        print('Iteration '+str(i)+' with error: '+str(model.error(X,Y)))
+    Z = model.forward(testX)
+    return Z
+
+def testLinear(w, testX, testY):
+    output = []
+    for row in testX:
+        row = [1] + row
+        xrow = np.array(row, dtype=float)
+        wx = np.dot(xrow,w)
+        correlation = 1 if (wx > 0.4442) else 0
+        output.append(correlation)
+
+    numCorrect = 0
+    for i in range(len(output)):
+        if(output[i] == testY[i]):
+            numCorrect +=1
+    print("Linear: "+str(numCorrect)+"/"+str(len(output)))
+
+def testLogistic(output, testY):
+    numCorrect = 0
+    print("length output: "+str(len(output)))
+    for i in range(len(output)):
+        if(output[i][0] == testY[i]):
+            numCorrect +=1
+    print("Logistic: "+str(numCorrect)+"/"+str(len(output)))
+
+
+dataFile = 'Project1_data.csv'
 list = []
 raceNames = []
 raceTypes = []
 raceAges = []
 transform = {}
 #['0', '2015-09-20', "Marathon Oasis Rock 'n' Roll de Montreal", 'Marathon', 14024, 'M50-54']
-with open('Project1_data.csv', 'rt') as csvfile:
+#Sanitize the data 
+
+with open(dataFile, 'rt') as csvfile:
     csvreader = csv.reader(csvfile)
     next(csvreader)
     for row in csvreader:
@@ -99,23 +144,61 @@ with open('Project1_data.csv', 'rt') as csvfile:
                     raceAges.append(row[i+4])
         list.append(row)
 
-x = []
-y = []
-
+x=[]
+y=[]
+#Encode the data for participation
 for row in list:
     toAdd = []
     in2015MtlMarathon = 0
-    toAdd.append(row[0])
-    races = [0] * len(raceNames)
+    racesPerYear = {}
+    racesPerYear['2012'] = 0
+    racesPerYear['2013'] = 0
+    racesPerYear['2014'] = 0
+    racesPerYear['2015'] = 0
+    racesPerYear['2016'] = 0
+    numMontrealMarathons = 0
+    for j in range(len(row)):
+        if(j-1)%5 == 0:
+            racesPerYear[row[j][:4]] += 1
+            if(row[j+1] == 'marathonoasismontreal'):
+                numMontrealMarathons += 1
+    #toAdd.append(1)
+    toAdd.append(racesPerYear['2012'])
+    toAdd.append(racesPerYear['2013'])
+    toAdd.append(racesPerYear['2014'])
+    toAdd.append(racesPerYear['2015'])
+    toAdd.append(racesPerYear['2016'])
+    toAdd.append(numMontrealMarathons)
     for j in range(len(row)):
         if(j-1)%5 == 0:
             if (row[j][:4] == '2015') & (row[j+1] == 'marathonoasismontreal'):
                 in2015MtlMarathon = 1
-            else:
-                races[raceNames.index(row[j+1])] += 1
-    toAdd.extend(races)
     x.append(toAdd)
     y.append(in2015MtlMarathon)
 
-x = np.array(x, dtype=float)
-y = np.array(y, dtype=float)
+
+
+
+trainingX = []
+testX = []
+trainingY = []
+testY = []
+
+#Randomly take 4/5 data and put into trainingX, trainingY
+#Take the remaining 1/5 data and put into testX, testY
+for i in range(len(x)):
+    if(random.randint(0,4) != 0):
+        trainingX.append(x[i])
+        trainingY.append(y[i])
+    else:
+        testX.append(x[i])
+        testY.append(y[i])        
+
+trainingX = np.array(trainingX, dtype=float)
+trainingY = np.array(trainingY, dtype=float)
+
+w = linearRegression(trainingX, trainingY)
+output = logisticRegression(trainingX, trainingY, testX)
+
+testLinear(w, testX, testY)
+testLogistic(output, testY)
