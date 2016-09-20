@@ -7,7 +7,9 @@ class Model():
 
 	def fit(self, x, y):
 		self.ty1 = np.sum(y, axis=0) / y.size
+
 		self.tx1 = 
+		self.tx1.apply_along_axis(lambda arr: )
 
 	def forward(self, x):
 		if self.ty1 is None:
