@@ -4,6 +4,7 @@ import unicodedata
 import string
 import log_reg
 import lin_reg
+import naive_bayes
 import random
 
 
@@ -79,9 +80,18 @@ def logisticRegression(X, Y, testX):
     model = log_reg.Model(6, 0.1)
     for i in range(10):
         model.step(X,Y)
-        print('Iteration '+str(i)+' with error: '+str(model.error(X,Y)))
+        #print('Iteration '+str(i)+' with error: '+str(model.error(X,Y)))
     Z = model.forward(testX)
     return Z
+
+def naiveBayes(X,Y,testX):
+    m = naive_bayes.Model(2)
+    m.fit(X,Y,True)
+
+    testX = np.array(testX, dtype=float)
+    np.set_printoptions(threshold=np.nan)
+    print(m.forward(testX))
+    return m.forward(testX)
 
 def testLinear(w, testX, testY):
     output = []
@@ -106,7 +116,13 @@ def testLogistic(output, testY):
             numCorrect +=1
     print("Logistic: "+str(numCorrect)+"/"+str(len(output)))
 
-
+def testNaiveBayes(output, testY):
+    numCorrect = 0
+    print("length output: "+str(len(output)))
+    for i in range(len(output)):
+        if(output[i] == testY[i]):
+            numCorrect +=1
+    print("Naive Bayes: "+str(numCorrect)+"/"+str(len(output)))
 dataFile = 'Project1_data.csv'
 list = []
 raceNames = []
@@ -176,9 +192,6 @@ for row in list:
     x.append(toAdd)
     y.append(in2015MtlMarathon)
 
-
-
-
 trainingX = []
 testX = []
 trainingY = []
@@ -202,3 +215,6 @@ output = logisticRegression(trainingX, trainingY, testX)
 
 testLinear(w, testX, testY)
 testLogistic(output, testY)
+
+output = naiveBayes(trainingX, trainingY, testX)
+testNaiveBayes(output, testY)
