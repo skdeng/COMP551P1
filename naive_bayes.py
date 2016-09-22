@@ -18,6 +18,10 @@ class Model():
 
 	def forward(self, x):
 		# P(x|y=1)
-		pxy = x * self.tx1 + (1-x) * self.tx0
+		pxy = x * self.tx1
 		pyx = pxy * self.ty1
-		return np.round(np.sum(pyx, axis=1))
+		py = np.sum(pxy, axis=1)
+		pxy0 = x * self.tx0
+		py0x = pxy0 * (1 - self.ty1)
+		py0 = np.sum(pxy0, axis=1)
+		return (py > py0) * 1	# equivalent to computing the ratio
