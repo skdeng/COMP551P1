@@ -12,6 +12,7 @@ def get_sec(time_str):
     h, m, s = time_str.split(':')
     return int(h) * 3600 + int(m) * 60 + int(s)
 
+
 def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s)
                   if unicodedata.category(c) != 'Mn')
@@ -70,6 +71,7 @@ def levenshtein(s1, s2):
         previous_row = current_row
     return previous_row[-1]
 
+
 def linearRegression(X, Y):
     m = lin_reg.Model(2)
     m.solve(X,Y)
@@ -87,13 +89,12 @@ def logisticRegression(X, Y, testX):
 def naiveBayes(X,Y,testX):
     m = naive_bayes.Model(2)
     m.fit(X,Y,True)
-
     testX = np.array(testX, dtype=float)
     np.set_printoptions(threshold=np.nan)
-    print(m.forward(testX))
+    #print(m.forward(testX))
     return m.forward(testX)
 
-def testLinear(w, testX, testY):
+def testLinearClassifier(w, testX, testY):
     output = []
     for row in testX:
         row = [1] + row
@@ -106,7 +107,8 @@ def testLinear(w, testX, testY):
     for i in range(len(output)):
         if(output[i] == testY[i]):
             numCorrect +=1
-    print("Linear: "+str(numCorrect)+"/"+str(len(output)))
+    #print("Linear: "+str(numCorrect)+"/"+str(len(output)))
+    print("Linear: "+str(numCorrect/len(output)))
 
 def testLogistic(output, testY):
     numCorrect = 0
@@ -114,15 +116,37 @@ def testLogistic(output, testY):
     for i in range(len(output)):
         if(output[i][0] == testY[i]):
             numCorrect +=1
-    print("Logistic: "+str(numCorrect)+"/"+str(len(output)))
+    print("Logistic: "+str(numCorrect/len(output)))
 
 def testNaiveBayes(output, testY):
     numCorrect = 0
     print("length output: "+str(len(output)))
     for i in range(len(output)):
+        if(output[i] == 1):
+            output[i] = 0
+        if(output[i] == 2):
+            output[i] = 1
+        #print(str(output[i])+" "+str(testY[i]))
         if(output[i] == testY[i]):
             numCorrect +=1
-    print("Naive Bayes: "+str(numCorrect)+"/"+str(len(output)))
+    print("Naive Bayes: "+str(numCorrect/len(output)))
+
+def testLinearRegression(w, testX, testY):
+    #output = []
+    sumOfPercentDifference = 0
+    numPercentDifference = 0
+    for i, row in enumerate(testX):
+        row = [1] + row
+        xrow = np.array(row, dtype=float)
+        wx = np.dot(xrow,w)
+        #print(str(wx)+" "+str(testY[i]))
+        #print(str(wx)+" "+str(testY[i]))
+        percentDifference = abs(wx - testY[i])/testY[i]*100
+        sumOfPercentDifference += percentDifference
+        numPercentDifference += 1
+        #output.append(percentDifference)
+    print("Regression Percent Difference: "+str(sumOfPercentDifference/numPercentDifference))
+    
 dataFile = 'Project1_data.csv'
 list = []
 raceNames = []
@@ -160,37 +184,41 @@ with open(dataFile, 'rt') as csvfile:
                     raceAges.append(row[i+4])
         list.append(row)
 
+#print(raceNames)
+#print(raceTypes)
+#print(raceAges)
+
 x=[]
 y=[]
 #Encode the data for participation
 for row in list:
-    toAdd = []
-    in2015MtlMarathon = 0
-    racesPerYear = {}
-    racesPerYear['2012'] = 0
-    racesPerYear['2013'] = 0
-    racesPerYear['2014'] = 0
-    racesPerYear['2015'] = 0
-    racesPerYear['2016'] = 0
-    numMontrealMarathons = 0
-    for j in range(len(row)):
-        if(j-1)%5 == 0:
-            racesPerYear[row[j][:4]] += 1
-            if(row[j+1] == 'marathonoasismontreal'):
-                numMontrealMarathons += 1
-    #toAdd.append(1)
-    toAdd.append(racesPerYear['2012'])
-    toAdd.append(racesPerYear['2013'])
-    toAdd.append(racesPerYear['2014'])
-    toAdd.append(racesPerYear['2015'])
-    toAdd.append(racesPerYear['2016'])
-    toAdd.append(numMontrealMarathons)
-    for j in range(len(row)):
-        if(j-1)%5 == 0:
-            if (row[j][:4] == '2015') & (row[j+1] == 'marathonoasismontreal'):
-                in2015MtlMarathon = 1
-    x.append(toAdd)
-    y.append(in2015MtlMarathon)
+        toAdd = []
+        in2015MtlMarathon = 0
+        racesPerYear = {}
+        racesPerYear['2012'] = 0
+        racesPerYear['2013'] = 0
+        racesPerYear['2014'] = 0
+        racesPerYear['2015'] = 0
+        racesPerYear['2016'] = 0
+        numMontrealMarathons = 0
+        for j in range(len(row)):
+            if(j-1)%5 == 0:
+                racesPerYear[row[j][:4]] += 1
+                if(row[j+1] == 'marathonoasismontreal'):
+                    numMontrealMarathons += 1
+        #toAdd.append(1)
+        toAdd.append(racesPerYear['2012'])
+        toAdd.append(racesPerYear['2013'])
+        toAdd.append(racesPerYear['2014'])
+        toAdd.append(racesPerYear['2015'])
+        toAdd.append(racesPerYear['2016'])
+        toAdd.append(numMontrealMarathons)
+        for j in range(len(row)):
+            if(j-1)%5 == 0:
+                if (row[j][:4] == '2015') & (row[j+1] == 'marathonoasismontreal'):
+                    in2015MtlMarathon = 1
+        x.append(toAdd)
+        y.append(in2015MtlMarathon)
 
 trainingX = []
 testX = []
@@ -199,6 +227,7 @@ testY = []
 
 #Randomly take 4/5 data and put into trainingX, trainingY
 #Take the remaining 1/5 data and put into testX, testY
+
 for i in range(len(x)):
     if(random.randint(0,4) != 0):
         trainingX.append(x[i])
@@ -211,10 +240,132 @@ trainingX = np.array(trainingX, dtype=float)
 trainingY = np.array(trainingY, dtype=float)
 
 w = linearRegression(trainingX, trainingY)
-output = logisticRegression(trainingX, trainingY, testX)
+outputLogistic = logisticRegression(trainingX, trainingY, testX)
+testLinearClassifier(w, testX, testY)
+testLogistic(outputLogistic, testY)
 
-testLinear(w, testX, testY)
-testLogistic(output, testY)
+x=[]
+y=[]
+for row in list:
+        toAdd = []
+        in2015MtlMarathon = 0
+        racesPerYear = {}
+        racesPerYear['2012'] = 0
+        racesPerYear['2013'] = 0
+        racesPerYear['2014'] = 0
+        racesPerYear['2015'] = 0
+        racesPerYear['2016'] = 0
+        mtlMarathonPerYear = {}
+        mtlMarathonPerYear['2012'] = 0
+        mtlMarathonPerYear['2013'] = 0
+        mtlMarathonPerYear['2014'] = 0
+        #mtlMarathonPerYear['2015'] = 0
+        #mtlMarathonPerYear['2016'] = 0
+        for j in range(len(row)):
+            if(j-1)%5 == 0:
+                racesPerYear[row[j][:4]] = 1
+                if(row[j+1] == 'marathonoasismontreal'):
+                    mtlMarathonPerYear[row[j][:4]] = 1
+        toAdd.append(racesPerYear['2012'])
+        toAdd.append(racesPerYear['2013'])
+        toAdd.append(racesPerYear['2014'])
+        toAdd.append(racesPerYear['2015'])
+        toAdd.append(racesPerYear['2016'])
+        toAdd.append(mtlMarathonPerYear['2012'])
+        toAdd.append(mtlMarathonPerYear['2013'])
+        toAdd.append(mtlMarathonPerYear['2014'])
+        #toAdd.append(mtlMarathonPerYear['2015'])
+        #toAdd.append(mtlMarathonPerYear['2016'])
+        for j in range(len(row)):
+            if(j-1)%5 == 0:
+                if(row[j][:4] == '2015') & (row[j+1] == 'marathonoasismontreal'):
+                    in2015MtlMarathon = 1
+        x.append(toAdd)
+        y.append(in2015MtlMarathon)
 
-output = naiveBayes(trainingX, trainingY, testX)
-testNaiveBayes(output, testY)
+trainingX = []
+testX = []
+trainingY = []
+testY = []
+
+for i in range(len(x)):
+    if(random.randint(0,4) != 0):
+        trainingX.append(x[i])
+        trainingY.append(y[i])
+    else:
+        testX.append(x[i])
+        testY.append(y[i])        
+
+trainingX = np.array(trainingX, dtype=float)
+trainingY = np.array(trainingY, dtype=float)
+
+outputNaive = naiveBayes(trainingX, trainingY, testX)
+testNaiveBayes(outputNaive, testY)
+
+x=[]
+y=[]
+
+#Encode the data for participation
+for row in list:
+    toAdd = []
+    in2015MtlMarathon = 0
+    racesPerYear = {}
+    racesPerYear['2012'] = 0
+    racesPerYear['2013'] = 0
+    racesPerYear['2014'] = 0
+    racesPerYear['2015'] = 0
+    racesPerYear['2016'] = 0
+    numMontrealMarathons = 0
+    numTotalMarathons = 0
+    totalTime = 0
+    for j in range(len(row)):
+        if(j-1)%5 == 0:
+            if(row[j+2] == "marathon"):
+                if(row[j+3] != "-1"):
+                    numTotalMarathons += 1;
+                    totalTime += row[j+3]
+
+            if (row[j][:4] == '2015') & (row[j+1] == 'marathonoasismontreal'):
+                MtlMarathon2015Time = row[j+3]
+                in2015MtlMarathon = 1
+            else:
+                racesPerYear[row[j][:4]] += 1
+                if(row[j+1] == 'marathonoasismontreal'):
+                    numMontrealMarathons += 1
+
+    toAdd.append(racesPerYear['2012'])
+    toAdd.append(racesPerYear['2013'])
+    toAdd.append(racesPerYear['2014'])
+    toAdd.append(racesPerYear['2015'])
+    toAdd.append(racesPerYear['2016'])
+    toAdd.append(numTotalMarathons)
+
+    if(numTotalMarathons != 0):
+        averageMarathonTime = totalTime/numTotalMarathons
+        toAdd.append(averageMarathonTime)
+
+    toAdd.append(numMontrealMarathons)
+
+    #only if in 2015 montreal marathon
+    #print(type(MtlMarathon2015Time))
+    if((in2015MtlMarathon == 1) & (numTotalMarathons != 0) & (str(MtlMarathon2015Time) != "-1")):
+        x.append(toAdd)
+        y.append(MtlMarathon2015Time)
+trainingX = []
+testX = []
+trainingY = []
+testY = []
+
+for i in range(len(x)):
+    if(random.randint(0,4) != 0):
+        trainingX.append(x[i])
+        trainingY.append(y[i])
+    else:
+        testX.append(x[i])
+        testY.append(y[i]) 
+
+trainingX = np.array(trainingX, dtype=float)
+trainingY = np.array(trainingY, dtype=float)
+
+w = linearRegression(trainingX, trainingY)
+testLinearRegression(w, testX, testY)

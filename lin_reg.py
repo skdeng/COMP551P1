@@ -10,8 +10,6 @@ class Model(object):
 		x = np.concatenate((np.ones([x.shape[0], 1]), x), axis=1)
 		xtx = np.dot(x.T, x)
 		xty = np.dot(y, x)
-		print(x)
-		print(xtx)
 		self.w = np.dot(np.linalg.inv(xtx), xty.T)
 
 	def forward(self, x):
