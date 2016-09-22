@@ -70,6 +70,29 @@ raceNames = []
 raceTypes = []
 raceAges = []
 transform = {}
+
+def partition(data, k):
+    size = len(data) / k
+    #size now represents the size of each of our subsets
+
+    #folding determing by array splicing via list comprehension, stepping through length of data by "size" to determine chunks
+    subsets = [data[i:i+size] for i in range(0, len(data), size)]
+
+    #handle case of leftover data after folding
+    if len(data)%k != 0:
+        print "Warning, %d is not a multiple of %d. Skipping %d elements." % (len(data), k, len(data)%k)
+        return subsets[:-1]
+    else:
+        return subsets
+    
+
+
+def marathonYearAvg(data, year):
+    return 0
+
+"""
+Reads csv source data and returns an array of the format 
+"""
 #['0', '2015-09-20', "Marathon Oasis Rock 'n' Roll de Montreal", 'Marathon', 14024, 'M50-54']
 with open('Project1_data.csv', 'rt') as csvfile:
     csvreader = csv.reader(csvfile)
@@ -105,17 +128,25 @@ y = []
 for row in list:
     toAdd = []
     in2015MtlMarathon = 0
+
+    #add participant ID first
     toAdd.append(row[0])
+
     races = [0] * len(raceNames)
     for j in range(len(row)):
         if(j-1)%5 == 0:
+            #print(row[j])
             if (row[j][:4] == '2015') & (row[j+1] == 'marathonoasismontreal'):
                 in2015MtlMarathon = 1
             else:
                 races[raceNames.index(row[j+1])] += 1
+        #if(j-3)%5 == 0:
+            #print(row[j])
+
     toAdd.extend(races)
     x.append(toAdd)
     y.append(in2015MtlMarathon)
+
 
 x = np.array(x, dtype=float)
 y = np.array(y, dtype=float)
