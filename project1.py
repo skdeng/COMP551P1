@@ -44,13 +44,7 @@ def cleanRaceTypes(s):
     return s
 
 def cleanRaceAges(s):
-    s = s.upper()
-    s = s.replace(" ","")
-    s = s.replace("to","-")
-    s = s.replace("'","")
-    s = s.replace("HOMMES","MALE")
-    s = s.replace("MALE","M")
-    return s
+
 
 def levenshtein(s1, s2):
     if len(s1) < len(s2):
@@ -260,7 +254,7 @@ for row in list:
         mtlMarathonPerYear['2013'] = 0
         mtlMarathonPerYear['2014'] = 0
         #mtlMarathonPerYear['2015'] = 0
-        #mtlMarathonPerYear['2016'] = 0
+        mtlMarathonPerYear['2016'] = 0
         for j in range(len(row)):
             if(j-1)%5 == 0:
                 racesPerYear[row[j][:4]] = 1
