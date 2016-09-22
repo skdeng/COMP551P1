@@ -13,5 +13,8 @@ class Model(object):
 		self.w = np.dot(np.linalg.inv(xtx), xty.T)
 
 	def forward(self, x):
-		x = np.concatenate((np.ones([x.shape[0], 1]), x), axis=1)		
+		x = np.concatenate((np.ones([x.shape[0], 1]), x), axis=1)	
 		return np.dot(x, self.w)
+
+	def error(self, x, y):
+		return np.square(y - self.forward(x))
