@@ -10,19 +10,23 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+#convert HH:MM:SS to total seconds
 def get_sec(time_str):
     h, m, s = time_str.split(':')
     return int(h) * 3600 + int(m) * 60 + int(s)
 
+#convert total seconds to HH:MM:SS
 def get_hms(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return ("%d:%02d:%02d" % (h, m, s))
 
+#removes accents from s
 def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s)
                   if unicodedata.category(c) != 'Mn')
 
+#sanitizes race names
 def cleanRaceName(s):
     s = s.strip()
     s = s.lower()
@@ -33,6 +37,7 @@ def cleanRaceName(s):
     s = s.replace("rocknroll","")
     return s
 
+#sanitizes race types
 def cleanRaceTypes(s):
     s = s.lower()
     s = strip_accents(s)
@@ -49,6 +54,7 @@ def cleanRaceTypes(s):
     s = s.replace("route","")
     return s
 
+#sanitizes race categories
 def cleanRaceAges(s):
      s = s.upper()
      s = s.replace(" ","")
@@ -58,6 +64,8 @@ def cleanRaceAges(s):
      s = s.replace("MALE","M")
      return s
 
+#https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
+#for fuzzy matching
 def levenshtein(s1, s2):
     if len(s1) < len(s2):
         return levenshtein(s2, s1)
@@ -77,6 +85,7 @@ def levenshtein(s1, s2):
         previous_row = current_row
     return previous_row[-1]
 
+#encodes data for use with logistic regression
 def encodeLogistic(list):
     x=[]
     y=[]
@@ -113,6 +122,7 @@ def encodeLogistic(list):
     output.append(y)
     return output
 
+#encodes data for naive bayes
 def encodeNaive(list):
     x=[]
     y=[]
@@ -153,6 +163,8 @@ def encodeNaive(list):
     output.append(x)
     output.append(y)
     return output
+
+#encodes data for linear regression
 def encodeRegression(list):
     x=[]
     y=[]
@@ -205,6 +217,7 @@ def encodeRegression(list):
     output.append(y)
     return output    
 
+#encodes data for linear regression
 def encodeOutputRegression(list):
     x=[]
     y=[]
@@ -262,6 +275,7 @@ def encodeOutputRegression(list):
     output.append(y)
     return output  
 
+#creates model for logistic regression
 def logisticRegression(X, Y):
     X = np.array(X, dtype=float)
     Y = np.array(Y, dtype=float)
@@ -273,12 +287,13 @@ def logisticRegression(X, Y):
     #Z = model.forward(testX)
     #return Z
 
+#applies logistic model on set
 def applyLogisticModel(model, testX):
     testX = np.array(testX, dtype=float)
     Z = model.forward(testX)
     return Z
 
-
+#creates model for naive bayes
 def naiveBayes(X,Y):
     X = np.array(X, dtype=float)
     Y = np.array(Y, dtype=float)
@@ -287,11 +302,13 @@ def naiveBayes(X,Y):
     #print(m.forward(testX))
     return m
 
+#applies naive bayes model on set
 def applyNaiveBayes(model, testX):
     np.set_printoptions(threshold=np.nan)
     testX = np.array(testX, dtype=float)
     return model.forward(testX)
 
+#creates model for linear regression
 def linearRegression(X, Y):
     X = np.array(X, dtype=float)
     Y = np.array(Y, dtype=float)
@@ -299,6 +316,7 @@ def linearRegression(X, Y):
     m.solve(X,Y)
     return m
 
+#applies linear regression model on set
 def applyLinearRegression(model, testX):
     output = []
     #return m.w
@@ -309,41 +327,97 @@ def applyLinearRegression(model, testX):
         output.append(finishTime)
     return output
 
+#tests logistic regression
 def testLogistic(output, testY):
     numCorrect = 0
-    print("length output: "+str(len(output)))
+
+    fp = 0
+    fn = 0
+    tp = 0
+    tn = 0
+    total = 0
+
+    #print("length output: "+str(len(output)))
     for i in range(len(output)):
         if(output[i][0] == testY[i]):
             numCorrect +=1
+
+        if(output[i][0] != testY[i]):
+            if(output[i][0]==0) :
+                fn+=1
+            else:
+                fp+=1
+
+        if(output[i][0] == testY[i]):
+            if(output[i][0] == 1):
+                tp+=1
+            else:
+                tn+=1
+        total+=1
+
+    #print("tp: "+str(tp)+"/"+str(total)+"tn: "+str(tn)+"/"+str(total)+"fp: "+str(fp)+"/"+str(total)+"fn: "+str(fn)+"/"+str(total))
+    accuracy = (tp+tn)/(tp+tn+fp+fn)
+    precision = (tp)/(tp+fp)
+    recall = (tp)/(tp+fn)
+    f1 = (2*precision*recall)/(precision+recall)
+    #print(str(accuracy))
+    #print(str(precision))
+    #print(str(recall))
+    #print(str(f1))
     #print("Logistic: "+str(numCorrect/len(output)))
     return numCorrect/len(output)
 
+#tests naive bayes 
 def testNaiveBayes(output, testY):
     numCorrect = 0
-    print("length output: "+str(len(output)))
+    fp = 0
+    fn = 0
+    tp = 0
+    tn = 0
+    total = 0
+    #print("length output: "+str(len(output)))
     for i in range(len(output)):
         if(output[i] == testY[i]):
             numCorrect +=1
+
+        if(output[i] != testY[i]):
+            if(output[i]==0) :
+                fn+=1
+            else:
+                fp+=1
+
+        if(output[i] == testY[i]):
+            if(output[i] == 1):
+                tp+=1
+            else:
+                tn+=1
+        total+=1
+    #print("tp: "+str(tp)+"/"+str(total)+"tn: "+str(tn)+"/"+str(total)+"fp: "+str(fp)+"/"+str(total)+"fn: "+str(fn)+"/"+str(total))
+    accuracy = (tp+tn)/(tp+tn+fp+fn)
+    precision = (tp)/(tp+fp)
+    recall = (tp)/(tp+fn)
+    f1 = (2*precision*recall)/(precision+recall)
+    #print(str(accuracy))
+    #print(str(precision))
+    #print(str(recall))
+    #print(str(f1))
     #print("Naive Bayes: "+str(numCorrect/len(output)))
     return numCorrect/len(output)
 
+#tests linear regression
 def testLinearRegression(testX, testY):
-    #output = []
-    print("length output: "+str(len(testX)))
+    #print("length output: "+str(len(testX)))
     sumOfPercentDifference = 0
     numPercentDifference = 0
     for i, row in enumerate(testX):
-        #print(row)
-        #print(str(wx)+" "+str(testY[i]))
-        #print(str(type(testX[i]))+" "+str(type(testY[i])))
-        #print(str(testX[i])+" "+str(testY[i]))
         percentDifference = abs(testX[i] - testY[i])/testY[i]*100
         sumOfPercentDifference += percentDifference
         numPercentDifference += 1
-        #output.append(percentDifference)
     #print("Regression Percent Difference: "+str(sumOfPercentDifference/numPercentDifference))
     return sumOfPercentDifference/numPercentDifference
     
+
+#performs kfold validation
 def kfoldValidation(x, y, k, train, applyModel, test, name):
     partitionSize = int(len(x)/k)
     errors = []
@@ -374,7 +448,7 @@ def kfoldValidation(x, y, k, train, applyModel, test, name):
     for i in errors:
         meanError += i
     meanError = meanError / k
-    print(name+" error:"+ str(meanError))
+    #print(name+" error:"+ str(meanError))
 
 
 dataFile = 'Project1_data.csv'
@@ -413,8 +487,26 @@ with open(dataFile, 'rt') as csvfile:
                 if row[i+4] not in raceAges:
                     raceAges.append(row[i+4])
         list.append(row)
-#random.shuffle(list)
 encodeYear = 2015
+
+# dataLogistic = encodeLogistic(list)
+# x = dataLogistic[0]
+# y = dataLogistic[1]
+
+# kfoldValidation(x, y, 5, logisticRegression, applyLogisticModel, testLogistic, "Logistic Regression")
+
+# dataNaive = encodeNaive(list)
+# x = dataNaive[0]
+# y = dataNaive[1]
+
+# kfoldValidation(x, y, 5, naiveBayes, applyNaiveBayes, testNaiveBayes, "Naive Bayes") 
+
+# dataRegression = encodeRegression(list)
+# x = dataRegression[0]
+# y = dataRegression[1]
+
+# kfoldValidation(x, y, 5, linearRegression, applyLinearRegression, testLinearRegression, "Linear Regression")
+
 dataLogistic = encodeLogistic(list)
 x = dataLogistic[0]
 y = dataLogistic[1]
@@ -448,7 +540,4 @@ for i, row in enumerate(list):
     #print(str(i)+","+str(int(logisticOutput[i][0]))+","+str(naiveOutput[i])+","+get_hms(regressionOutput[i]))
     f.write(str(i)+","+str(int(logisticOutput[i][0]))+","+str(naiveOutput[i])+","+get_hms(regressionOutput[i])+"\n")
 f.close()
-#kfoldValidation(x, y, 5, logisticRegression, applyLogisticModel, testLogistic, "Logistic Regression")
-#kfoldValidation(x, y, 5, naiveBayes, applyNaiveBayes, testNaiveBayes, "Naive Bayes") 
-#kfoldValidation(x, y, 5, linearRegression, applyLinearRegression, testLinearRegression, "Linear Regression")
 
